@@ -49,7 +49,7 @@ func NewImageService(db *pgxpool.Pool, st storage.FileStorage, cdnURL string, ma
 }
 
 func (s *ImageService) Upload(ctx context.Context, userID int64, isAdmin bool, filename string, file io.Reader, size int64, mimeType string, tags []string) (*domain.Image, error) {
-	if size > s.maxSizeMB*1024*1024 {
+	if s.maxSizeMB > 0 && size > s.maxSizeMB*1024*1024 {
 		return nil, fmt.Errorf("file too large: max %dMB", s.maxSizeMB)
 	}
 

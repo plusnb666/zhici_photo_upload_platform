@@ -39,7 +39,7 @@ type Config struct {
 	CDNBaseURL string // CDN 前缀，如 http://47.116.137.143:8080/images。为空时使用 S3 预签名 URL
 
 	// ── 限制 ──
-	UploadMaxSizeMB int64 // 单文件上传上限（MB），默认 20MB
+	UploadMaxSizeMB int64 // 单文件上传上限（MB），0 表示不限制
 	StorageQuotaGB  int64 // 普通用户存储配额（GB），默认 5GB（admin 无限制）
 }
 
@@ -67,7 +67,7 @@ func Load() *Config {
 		JWTSecret:  getEnv("JWT_SECRET", "change-me"),
 		CDNBaseURL: getEnv("CDN_BASE_URL", ""),
 
-		UploadMaxSizeMB: getEnvInt64("UPLOAD_MAX_SIZE_MB", 20),
+		UploadMaxSizeMB: getEnvInt64("UPLOAD_MAX_SIZE_MB", 0),
 		StorageQuotaGB:  getEnvInt64("STORAGE_QUOTA_GB", 5),
 	}
 }

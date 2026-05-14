@@ -16,7 +16,7 @@ import { InboxOutlined, CloudUploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { imagesAPI } from '../../api/images';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ALLOWED_IMAGE_TYPES, UPLOAD_MAX_SIZE_MB } from '../../utils/constants';
+import { ALLOWED_IMAGE_TYPES, UPLOAD_MAX_SIZE_GB } from '../../utils/constants';
 
 const { Dragger } = Upload;  // 拖拽上传组件
 
@@ -67,7 +67,7 @@ export function UploadPage() {
         >
           <p className="ant-upload-drag-icon"><InboxOutlined /></p>
           <p>点击或拖拽文件到此区域上传</p>
-          <p style={{ color: '#999' }}>支持 PNG, JPEG, GIF, WebP, BMP，单文件最大 {UPLOAD_MAX_SIZE_MB}MB</p>
+          <p style={{ color: '#999' }}>支持 PNG, JPEG, GIF, WebP, BMP，单文件最大 {UPLOAD_MAX_SIZE_GB}GB</p>
         </Dragger>
 
         <Divider />
