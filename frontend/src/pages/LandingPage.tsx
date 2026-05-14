@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Input, Select, Card, Image, Tag, Space, Spin, Empty, Button } from 'antd';
+import { Input, Select, Card, Image, Tag, Space, Spin, Empty, Button, Pagination } from 'antd';
 import { SearchOutlined, LoginOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -26,6 +26,7 @@ export function LandingPage() {
   });
 
   const images = imageData?.data?.data?.items ?? [];
+  const total = imageData?.data?.data?.total ?? 0;
   const tags = tagData?.data?.data?.items ?? [];
 
   return (
@@ -102,6 +103,18 @@ export function LandingPage() {
             </div>
           )}
         </Spin>
+
+        {total > 20 && (
+          <div style={{ textAlign: 'center', marginTop: 24, paddingBottom: 24 }}>
+            <Pagination
+              current={page}
+              pageSize={20}
+              total={total}
+              onChange={(p) => setPage(p)}
+              showTotal={(t) => `共 ${t} 张图片`}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

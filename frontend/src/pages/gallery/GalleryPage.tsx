@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Input, Select, Card, Image, Tag, Space, Button, message, Popconfirm, Empty, Spin } from 'antd';
+import { Input, Select, Card, Image, Tag, Space, Button, message, Popconfirm, Empty, Spin, Pagination } from 'antd';
 import { SearchOutlined, DeleteOutlined, CopyOutlined, EyeOutlined } from '@ant-design/icons';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -37,6 +37,7 @@ export function GalleryPage() {
   });
 
   const images = imageData?.data?.data?.items ?? [];
+  const total = imageData?.data?.data?.total ?? 0;
   const tags = tagData?.data?.data?.items ?? [];
 
   const handleCopyUrl = (url: string) => {
@@ -112,6 +113,18 @@ export function GalleryPage() {
           </div>
         )}
       </Spin>
+
+      {total > 20 && (
+        <div style={{ textAlign: 'center', marginTop: 24 }}>
+          <Pagination
+            current={page}
+            pageSize={20}
+            total={total}
+            onChange={(p) => setPage(p)}
+            showTotal={(t) => `共 ${t} 张图片`}
+          />
+        </div>
+      )}
     </div>
   );
 }
