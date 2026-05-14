@@ -158,6 +158,8 @@ func (s *ImageService) GetImage(ctx context.Context, userID int64, imageID int64
 		return nil, err
 	}
 
+	s.db.Exec(ctx, `UPDATE images SET view_count = view_count + 1 WHERE id = $1`, imageID)
+
 	img.Tags, _ = s.getImageTagsForUser(ctx, imageID, userID)
 	s.fillURLs(&img)
 	return &img, nil
@@ -435,6 +437,8 @@ func (s *ImageService) GetPublicImage(ctx context.Context, imageID int64) (*doma
 		&img.Width, &img.Height, &img.ThumbnailKey, &img.AltText, &img.ViewCount, &img.IsPublic,
 		&img.DeletedAt, &img.CreatedAt, &img.Username)
 	if err != nil { return nil, err }
+	s.db.Exec(ctx, `UPDATE images SET view_count = view_count + 1 WHERE id = $1`, imageID)
+
 	img.Tags, _ = s.getImageTags(ctx, imageID)
 	s.fillURLs(&img)
 	return &img, nil

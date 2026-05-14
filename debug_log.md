@@ -278,6 +278,20 @@ VSCode 重新加载窗口后 gopls 安装成功。
 
 ---
 
+## 22. 浏览次数始终为 0
+
+**现象**：所有图片的浏览次数一直为 0，从未变化。
+
+**根因**：整个后端代码没有任何 `UPDATE images SET view_count = view_count + 1` 语句。`view_count` 仅在 INSERT 时设为默认值 0，后续没有被更新过。
+
+**修复**：
+- [image_service.go:163](backend/internal/service/image_service.go#L163) `GetImage()` — 查询后加 `s.db.Exec(ctx, "UPDATE images SET view_count = view_count + 1 WHERE id = $1", imageID)`
+- [image_service.go:442](backend/internal/service/image_service.go#L442) `GetPublicImage()` — 同上
+
+两处改动覆盖了登录用户查看详情和公开访问详情两种场景。
+
+---
+
 ## 待解决的并发问题汇总
 
 | # | 问题 | 严重度 | 文件:行号 | 状态 |
