@@ -320,4 +320,5 @@ VSCode 重新加载窗口后 gopls 安装成功。
 | 2026-05-14 | 前端分页器修复（GalleryPage + LandingPage） |
 | 2026-05-14 | 上传限制 20MB 解除 |
 | 2026-05-14 | MaxMultipartMemory 32MB → 500MB + client_max_body_size 50m → 500m |
+| 2026-05-15 | 浏览次数 view_count 修复（GetImage + GetPublicImage 增加自增） |
 | 历史 | 初始开发、多轮 bug 修复 |
