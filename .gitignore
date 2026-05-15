@@ -1,0 +1,37 @@
+# Environment
+.env
+.env.local
+*.local
+
+# Build
+backend/server
+backend/tmp/
+frontend/dist/
+frontend/node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.db
+*.sqlite
+
+# Docker
+docker-compose.override.yml
+
+# Logs
+*.log
+
+# sqlc generated
+backend/internal/repository/gen/
+
+# Go vendor
+backend/vendor/
+frp/
