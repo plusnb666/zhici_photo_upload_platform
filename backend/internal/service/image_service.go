@@ -165,6 +165,36 @@ func (s *ImageService) GetImage(ctx context.Context, userID int64, imageID int64
 	return &img, nil
 }
 
+func (s *ImageService) UpdateImage(ctx context.Context, userID int64, imageID int64, isAdmin bool, filename, altText *string) (*domain.Image, error) {
+	var ownerID int64
+	err := s.db.QueryRow(ctx, `SELECT user_id FROM images WHERE id = $1 AND deleted_at IS NULL`, imageID).Scan(&ownerID)
+	if err != nil {
+		return nil, fmt.Errorf("image not found")
+	}
+	if ownerID != userID && !isAdmin {
+		return nil, fmt.Errorf("permission denied")
+	}
+
+	if filename != nil {
+		safeName := filenameRe.ReplaceAllString(*filename, "_")
+		if safeName == "" {
+			safeName = "untitled"
+		}
+		_, err = s.db.Exec(ctx, `UPDATE images SET filename = $1 WHERE id = $2`, safeName, imageID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if altText != nil {
+		_, err = s.db.Exec(ctx, `UPDATE images SET alt_text = $1 WHERE id = $2`, *altText, imageID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return s.GetImage(ctx, imageID, userID)
+}
+
 func (s *ImageService) ListImages(ctx context.Context, userID int64, page, limit int, search, tag, sort string) ([]domain.Image, int64, error) {
 	if limit <= 0 || limit > 100 {
 		limit = 20

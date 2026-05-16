@@ -13,7 +13,7 @@ export const imagesAPI = {
     client.get('/public/images', { params }),
   get: (id: number) => client.get(`/images/${id}`),
   getPublic: (id: number) => client.get(`/public/images/${id}`),
-  update: (id: number, data: { alt_text?: string; is_public?: boolean }) =>
+  update: (id: number, data: { filename?: string; alt_text?: string; is_public?: boolean }) =>
     client.patch(`/images/${id}`, data),
   delete: (id: number) => client.delete(`/images/${id}`),
   batchDelete: (ids: number[]) => client.post('/images/batch-delete', { ids }),

@@ -188,12 +188,14 @@ func (h *ImageHandler) Delete(c *gin.Context) {
 
 func (h *ImageHandler) Update(c *gin.Context) {
 	userID := c.GetInt64("user_id")
+	isAdmin := c.GetString("role") == "admin"
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		response.BadRequest(c, "Invalid image ID")
 		return
 	}
 	var body struct {
+		Filename *string `json:"filename"`
 		AltText  *string `json:"alt_text"`
 		IsPublic *bool   `json:"is_public"`
 	}
@@ -201,8 +203,20 @@ func (h *ImageHandler) Update(c *gin.Context) {
 		response.BadRequest(c, err.Error())
 		return
 	}
-	_, _ = id, userID
-	response.OK(c, nil)
+	img, err := h.svc.UpdateImage(c.Request.Context(), userID, id, isAdmin, body.Filename, body.AltText)
+	if err != nil {
+		if err.Error() == "permission denied" {
+			response.Forbidden(c, "Cannot edit this image")
+			return
+		}
+		if err.Error() == "image not found" {
+			response.NotFound(c, "Image not found")
+			return
+		}
+		response.InternalError(c, err.Error())
+		return
+	}
+	response.OK(c, img)
 }
 
 func (h *ImageHandler) AddTags(c *gin.Context) {

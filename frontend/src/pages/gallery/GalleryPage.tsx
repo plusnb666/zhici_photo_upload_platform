@@ -60,6 +60,8 @@ interface ImageCardProps {
   onOpen: (id: number) => void;
   onCopy: (url: string) => void;
   onDelete: (id: number) => void;
+  onRename: (id: number, name: string) => void;
+  isMine: boolean;
 }
 
 function ImageCard({
@@ -72,6 +74,8 @@ function ImageCard({
   onOpen,
   onCopy,
   onDelete,
+  onRename,
+  isMine,
 }: ImageCardProps) {
   const {
     attributes,
@@ -137,6 +141,18 @@ function ImageCard({
             data-cursor="hover"
             title="复制链接"
           >⎘</button>
+          {isMine && (
+            <button
+              className="gp-icon-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                const name = prompt('输入新文件名', img.filename)?.trim();
+                if (name && name !== img.filename) onRename(img.id, name);
+              }}
+              data-cursor="hover"
+              title="重命名"
+            >✎</button>
+          )}
           <Popconfirm
             title="确认删除？"
             onConfirm={() => onDelete(img.id)}
@@ -199,6 +215,17 @@ function ImageCard({
             onClick={(e) => { e.stopPropagation(); onCopy(img.url); }}
             data-cursor="hover"
           >⎘</button>
+          {isMine && (
+            <button
+              className="gp-mini-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                const name = prompt('输入新文件名', img.filename)?.trim();
+                if (name && name !== img.filename) onRename(img.id, name);
+              }}
+              data-cursor="hover"
+            >✎</button>
+          )}
           <Popconfirm
             title="确认删除？"
             onConfirm={() => onDelete(img.id)}
@@ -268,6 +295,22 @@ export function GalleryPage() {
       queryClient.invalidateQueries({ queryKey: [mine ? 'images' : 'public-images'] });
     },
   });
+
+  const renameMutation = useMutation({
+    mutationFn: ({ id, name }: { id: number; name: string }) =>
+      imagesAPI.update(id, { filename: name }),
+    onSuccess: () => {
+      message.success('已重命名');
+      queryClient.invalidateQueries({ queryKey: [mine ? 'images' : 'public-images'] });
+    },
+    onError: (err: any) => {
+      message.error(err.response?.data?.message || '重命名失败');
+    },
+  });
+
+  const handleRename = (id: number, name: string) => {
+    renameMutation.mutate({ id, name });
+  };
 
   const rawImages = imageData?.data?.data?.items ?? [];
   const total = imageData?.data?.data?.total ?? 0;
@@ -541,6 +584,8 @@ export function GalleryPage() {
                           onOpen={handleOpen}
                           onCopy={handleCopyUrl}
                           onDelete={(id) => deleteMutation.mutate(id)}
+                          onRename={handleRename}
+                          isMine={mine}
                         />
                       ))}
                     </motion.div>
