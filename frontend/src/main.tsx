@@ -6,6 +6,8 @@ import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import App from './App';
 import './styles/global.css';
+import './styles/theme.css';
+import { CursorProvider } from './hooks/useCursor';  
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,20 +20,22 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <ConfigProvider
-          locale={zhCN}
-          theme={{
-            token: {
-              colorPrimary: '#1677ff',
-              borderRadius: 6,
-            },
-          }}
-        >
-          <App />
-        </ConfigProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <CursorProvider>                          
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <ConfigProvider
+            locale={zhCN}
+            theme={{
+              token: {
+                colorPrimary: '#1677ff',
+                borderRadius: 6,
+              },
+            }}
+          >
+            <App />
+          </ConfigProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </CursorProvider>                         
   </React.StrictMode>,
 );

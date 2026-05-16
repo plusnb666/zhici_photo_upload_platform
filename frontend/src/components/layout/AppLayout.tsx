@@ -41,6 +41,7 @@ export function AppLayout() {
               { key: '/admin', label: '仪表盘' },
               { key: '/admin/users', label: '用户管理' },
               { key: '/admin/images', label: '图片管理' },
+              { key: '/admin/tags', label: '标签管理' },
             ],
           },
         ]

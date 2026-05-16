@@ -14,6 +14,7 @@
 //   ProtectedRoute      未登录重定向到 /login
 //   AdminRoute          非 admin 重定向到 /gallery
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useLenisScroll } from './hooks/useLenis';
 import { AppLayout } from './components/layout/AppLayout';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/auth/LoginPage';
@@ -28,8 +29,10 @@ import { ProfilePage } from './pages/profile/ProfilePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { AdminRoute } from './components/common/AdminRoute';
+import { TagManagePage } from './pages/admin/TagManagePage';
 
 export default function App() {
+  useLenisScroll();
   return (
     <Routes>
       {/* 公开路由：不需要登录 */}
@@ -39,21 +42,22 @@ export default function App() {
 
       {/* 需登录的路由：ProtectedRoute 检查 token */}
       <Route element={<ProtectedRoute />}>
-        {/* AppLayout 提供侧边栏 + 顶栏布局 */}
-        <Route element={<AppLayout />}>
-          <Route path="/gallery" element={<GalleryPage />} />
-          <Route path="/gallery/:id" element={<ImageDetailPage />} />
-          <Route path="/upload" element={<UploadPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+  {/* Gallery 自带布局，不用 AppLayout 包裹 */}
+  <Route path="/gallery" element={<GalleryPage />} />
+  <Route path="/upload" element={<UploadPage />} />
+  <Route path="/profile" element={<ProfilePage />} />
+  <Route path="/gallery/:id" element={<ImageDetailPage />} />
 
-          {/* 管理员专属路由 */}
-          <Route element={<AdminRoute />}>
-            <Route path="/admin" element={<DashboardPage />} />
-            <Route path="/admin/users" element={<UserManagementPage />} />
-            <Route path="/admin/images" element={<ImageManagementPage />} />
-          </Route>
-        </Route>
-      </Route>
+  {/* 其他页面继续用 AppLayout */}
+  <Route element={<AppLayout />}>
+    <Route element={<AdminRoute />}>
+      <Route path="/admin" element={<DashboardPage />} />
+      <Route path="/admin/users" element={<UserManagementPage />} />
+      <Route path="/admin/images" element={<ImageManagementPage />} />
+      <Route path="/admin/tags" element={<TagManagePage />} />
+    </Route>
+  </Route>
+</Route>
 
       {/* 404 兜底 */}
       <Route path="*" element={<NotFoundPage />} />
