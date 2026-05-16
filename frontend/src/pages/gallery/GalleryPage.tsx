@@ -364,9 +364,21 @@ export function GalleryPage() {
     }
   };
 
-  const handleCopyUrl = (url: string) => {
-    navigator.clipboard.writeText(url);
-    message.success('链接已复制');
+  const handleCopyUrl = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      message.success('链接已复制');
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      ok ? message.success('链接已复制') : message.error('复制失败，请手动复制');
+    }
   };
 
   const handleOpen = (id: number) => navigate(`/gallery/${id}`);
