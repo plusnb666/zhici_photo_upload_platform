@@ -70,6 +70,28 @@ func (h *AdminHandler) UpdateUser(c *gin.Context) {
 	response.OK(c, nil)
 }
 
+type resetPasswordReq struct {
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+func (h *AdminHandler) ResetUserPassword(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		response.BadRequest(c, "Invalid user ID")
+		return
+	}
+	var req resetPasswordReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Password must be at least 6 characters")
+		return
+	}
+	if err := h.svc.ResetUserPassword(c.Request.Context(), id, req.Password); err != nil {
+		response.InternalError(c, err.Error())
+		return
+	}
+	response.OK(c, nil)
+}
+
 func (h *AdminHandler) ListImages(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))

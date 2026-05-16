@@ -7,6 +7,8 @@ export const adminAPI = {
   listUsers: (params?: { page?: number; limit?: number; search?: string }) =>
     client.get('/admin/users', { params }),
   updateUser: (id: number, data: { role?: string }) => client.patch(`/admin/users/${id}`, data),
+  resetUserPassword: (id: number, password: string) =>
+    client.patch(`/admin/users/${id}/password`, { password }),
   listImages: (params?: { page?: number; limit?: number; search?: string; user_id?: number }) =>
     client.get('/admin/images', { params }),
   deleteImage: (id: number) => client.delete(`/admin/images/${id}`),

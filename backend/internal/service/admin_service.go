@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/nbplus/image_upload_platform/internal/domain"
 	"github.com/nbplus/image_upload_platform/internal/storage"
@@ -289,4 +290,22 @@ func (s *AdminService) GetTagStats(ctx context.Context) (*TagStatsResponse, erro
 		resp.TopTags = append(resp.TopTags, ts)
 	}
 	return &resp, nil
+}
+
+func (s *AdminService) ResetUserPassword(ctx context.Context, userID int64, newPassword string) error {
+	if len(newPassword) < 6 {
+		return fmt.Errorf("password must be at least 6 characters")
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+	tag, err := s.db.Exec(ctx, `UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2`, string(hash), userID)
+	if err != nil {
+		return fmt.Errorf("failed to update password: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("user not found")
+	}
+	return nil
 }

@@ -22,6 +22,28 @@ export function UserManagementPage() {
     },
   });
 
+  const resetPwdMutation = useMutation({
+    mutationFn: ({ id, password }: { id: number; password: string }) =>
+      adminAPI.resetUserPassword(id, password),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      message.success('密码已重置');
+    },
+    onError: (err: any) => {
+      message.error(err.response?.data?.message || '重置失败');
+    },
+  });
+
+  const handleResetPassword = (record: any) => {
+    const pwd = prompt(`为 ${record.username} (${record.email}) 输入新密码（至少6位）：`);
+    if (!pwd) return;
+    if (pwd.length < 6) {
+      message.error('密码至少6位');
+      return;
+    }
+    resetPwdMutation.mutate({ id: record.id, password: pwd });
+  };
+
   const users = data?.data?.data?.items ?? [];
   const total = data?.data?.data?.total ?? 0;
 
@@ -44,6 +66,17 @@ export function UserManagementPage() {
     },
     { title: '存储用量', dataIndex: 'storage_used', key: 'storage_used' },
     { title: '注册时间', dataIndex: 'created_at', key: 'created_at', render: (d: string) => formatDate(d) },
+    { title: '操作', key: 'actions',
+      render: (_: any, record: any) => (
+        <Popconfirm
+          title={`重置 ${record.username} 的密码？`}
+          description="将为其设置新密码"
+          onConfirm={() => handleResetPassword(record)}
+        >
+          <Button size="small" type="link" danger>重置密码</Button>
+        </Popconfirm>
+      ),
+    },
   ];
 
   return (

@@ -116,6 +116,7 @@ func Setup(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client, fileStorage 
 			admin.GET("/sync/status", adminH.SyncStatus)      // 同步状态
 			admin.GET("/users", adminH.ListUsers)             // 用户列表
 			admin.PATCH("/users/:id", adminH.UpdateUser)      // 修改用户（角色等）
+			admin.PATCH("/users/:id/password", adminH.ResetUserPassword) // 重置用户密码
 			admin.GET("/images", adminH.ListImages)           // 全局图片管理
 			admin.DELETE("/images/:id", adminH.DeleteImage)   // 强制删除图片
 		}
