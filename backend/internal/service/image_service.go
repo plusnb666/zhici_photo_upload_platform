@@ -33,7 +33,7 @@ var (
 		"image/webp": true,
 		"image/bmp":  true,
 	}
-	filenameRe = regexp.MustCompile(`[^a-zA-Z0-9._-]`)
+	filenameRe = regexp.MustCompile(`[\\/:*?"<>|]`)
 )
 
 type ImageService struct {
@@ -192,7 +192,7 @@ func (s *ImageService) UpdateImage(ctx context.Context, userID int64, imageID in
 		}
 	}
 
-	return s.GetImage(ctx, imageID, userID)
+	return s.GetImage(ctx, userID, imageID)
 }
 
 func (s *ImageService) ListImages(ctx context.Context, userID int64, page, limit int, search, tag, sort string) ([]domain.Image, int64, error) {

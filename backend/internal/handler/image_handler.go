@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -168,7 +169,8 @@ func (h *ImageHandler) Download(c *gin.Context) {
 		response.InternalError(c, "Failed to download file")
 		return
 	}
-	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, img.Filename))
+	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"; filename*=UTF-8''%s`,
+			url.QueryEscape(img.Filename), url.PathEscape(img.Filename)))
 	c.Data(200, mime, data)
 }
 
