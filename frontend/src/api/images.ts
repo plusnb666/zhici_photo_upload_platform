@@ -20,4 +20,8 @@ export const imagesAPI = {
   toggleTag: (id: number, tagId: number) => client.post(`/images/${id}/toggle-tag`, { tag_id: tagId }),
   addTags: (id: number, tagNames: string[]) => client.post(`/images/${id}/tags`, { tag_names: tagNames }),
   removeTag: (imageId: number, tagId: number) => client.delete(`/images/${imageId}/tags/${tagId}`),
+  listComments: (id: number) => client.get(`/images/${id}/comments`),
+  createComment: (id: number, content: string) => client.post(`/images/${id}/comments`, { content }),
+  deleteComment: (imageId: number, commentId: number) => client.delete(`/images/${imageId}/comments/${commentId}`),
+  listPublicComments: (id: number) => client.get(`/public/images/${id}/comments`),
 };

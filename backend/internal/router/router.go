@@ -46,6 +46,7 @@ func Setup(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client, fileStorage 
 		cfg.UploadMaxSizeMB, cfg.StorageQuotaGB)
 	tagSvc := service.NewTagService(db)                                       // 标签管理
 	adminSvc := service.NewAdminService(db, fileStorage)                      // 管理后台
+	commentSvc := service.NewCommentService(db)                                 // 评论管理
 
 	// ── 处理器层初始化 ──
 	healthH := handler.NewHealthHandler()
@@ -53,6 +54,7 @@ func Setup(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client, fileStorage 
 	imageH := handler.NewImageHandler(imageSvc)
 	tagH := handler.NewTagHandler(tagSvc)
 	adminH := handler.NewAdminHandler(adminSvc)
+	commentH := handler.NewCommentHandler(commentSvc)
 
 	// ── 路由注册 ──
 
@@ -74,7 +76,8 @@ func Setup(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client, fileStorage 
 	{
 		public.GET("/images", imageH.ListPublic)      // 公开图库列表
 		public.GET("/images/:id", imageH.GetPublic)   // 公开图片详情
-	}
+			public.GET("/images/:id/comments", commentH.List) // 公开评论列表
+		}
 
 	// 需要认证的路由
 	api := r.Group("/api/v1")
@@ -95,6 +98,10 @@ func Setup(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client, fileStorage 
 			images.DELETE("/:id/tags/:tagId", imageH.RemoveTag)  // 移除标签
 			images.POST("/:id/toggle-tag", imageH.ToggleTag)     // 切换标签（点赞模式）
 			images.POST("/batch-delete", imageH.BatchDelete)     // 批量删除
+
+				images.GET("/:id/comments", commentH.List)             // 评论列表
+				images.POST("/:id/comments", commentH.Create)          // 发表评论
+				images.DELETE("/:id/comments/:cid", commentH.Delete)   // 删除评论
 		}
 
 		// 标签

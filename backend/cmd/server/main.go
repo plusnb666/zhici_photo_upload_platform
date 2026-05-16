@@ -219,7 +219,17 @@ func runMigrations(db *pgxpool.Pool) {
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires ON refresh_tokens(expires_at) WHERE revoked = FALSE`,
-	}
+
+			// 评论表
+			`CREATE TABLE IF NOT EXISTS comments (
+				id         BIGSERIAL PRIMARY KEY,
+				image_id   BIGINT      NOT NULL REFERENCES images(id) ON DELETE CASCADE,
+				user_id    BIGINT      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+				content    TEXT        NOT NULL,
+				created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+			)`,
+			`CREATE INDEX IF NOT EXISTS idx_comments_image ON comments(image_id, created_at)`,
+		}
 
 	for i, m := range migrations {
 		if _, err := db.Exec(ctx, m); err != nil {

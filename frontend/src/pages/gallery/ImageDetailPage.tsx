@@ -28,6 +28,7 @@ import { tagsAPI } from '../../api/tags';
 import { useAuthStore } from '../../store/authStore';
 import { formatFileSize, formatDateTime } from '../../utils/format';
 import { spring, ease, fadeUp, staggerContainer, staggerItem } from '../../utils/motion';
+import { CommentsSection } from '../../components/comments/CommentsSection';
 
 /* ─── 主色提取 ─── */
 function extractColors(img: HTMLImageElement, count = 5): string[] {
@@ -490,6 +491,8 @@ export function ImageDetailPage() {
             </motion.div>
           </motion.div>
         </div>
+
+        <CommentsSection imageId={Number(id)} isAuthenticated={!!user} />
       </motion.div>
     </>
   );
