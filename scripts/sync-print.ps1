@@ -2,12 +2,10 @@ param(
     [string]$Server = "http://47.116.137.143:8080",
     [string]$Email = "test@test.com",
     [string]$Password = "123456",
-    [string]$TagName = "dayin",
     [string]$OutputDir = "D:\print_images"
 )
 
 $ErrorActionPreference = "Stop"
-Add-Type -AssemblyName System.Web
 
 Write-Host ("[{0}] Login..." -f (Get-Date -Format HH:mm:ss))
 $body = @{email=$Email;password=$Password} | ConvertTo-Json
@@ -15,18 +13,26 @@ $res = Invoke-RestMethod -Uri "$Server/api/v1/auth/login" -Method POST -Body $bo
 $token = $res.data.access_token
 Write-Host "  OK (uid=$($res.data.user.id))"
 
-Write-Host ("[{0}] Fetching images tagged '{1}'..." -f (Get-Date -Format HH:mm:ss), $TagName)
-$encoded = [System.Web.HttpUtility]::UrlEncode($TagName)
-$url = "$Server/api/v1/public/images?tag=$encoded&limit=100&page=1"
-$res = Invoke-RestMethod -Uri $url -Method GET
-$items = $res.data.items
-$total = $res.data.total
+Write-Host ("[{0}] Fetching all public images..." -f (Get-Date -Format HH:mm:ss))
+$allImages = @()
+$page = 1
+$limit = 100
+
+do {
+    $url = "$Server/api/v1/public/images?limit=$limit&page=$page"
+    $res = Invoke-RestMethod -Uri $url -Method GET
+    $items = $res.data.items
+    $total = $res.data.total
+    $allImages += $items
+    $page++
+} while ($allImages.Count -lt $total)
+
 Write-Host "  Found: $total"
 
 $added = 0
 $kept = @{}
 
-foreach ($img in $items) {
+foreach ($img in $allImages) {
     $name = $img.filename
     $kept[$name] = $true
     $out = Join-Path $OutputDir $name

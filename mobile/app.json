@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "赤子の相册",
+    "slug": "chizi-album",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#f8f5f0"
+    },
+    "ios": { "supportsTablet": false, "bundleIdentifier": "com.chizi.album" },
+    "android": {
+      "adaptiveIcon": { "backgroundColor": "#f8f5f0" },
+      "package": "com.chizi.album",
+      "usesCleartextTraffic": true
+    },
+    "plugins": ["expo-image-picker"]
+  }
+}
