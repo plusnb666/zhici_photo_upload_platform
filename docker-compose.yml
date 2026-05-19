@@ -37,7 +37,10 @@ services:
       - S3_BUCKET=images
       - S3_USE_SSL=false
       - JWT_SECRET=dev-secret-key-do-not-use-in-production
+      - UPLOAD_MAX_SIZE_MB=200
       - CDN_BASE_URL=http://localhost/images
+    tmpfs:
+      - /tmp
     depends_on:
       postgres:
         condition: service_healthy

@@ -8,8 +8,8 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /build/server ./cmd/server
 
-FROM scratch
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+FROM alpine:3.21
+RUN apk add --no-cache ca-certificates tzdata
 COPY --from=builder /build/server /server
 COPY --from=builder /build/db/migrations /db/migrations
 EXPOSE 8080

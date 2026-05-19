@@ -32,7 +32,7 @@ func Setup(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client, fileStorage 
 	}
 
 	r := gin.New()
-	r.MaxMultipartMemory = 500 << 20 // 500MB，同时上传多张大图
+	r.MaxMultipartMemory = 200 << 20 // 200MB 内存缓冲，超出写 /tmp
 
 	// ── 全局中间件 ──
 	r.Use(middleware.Recovery())       // panic 恢复，返回 500 而非崩溃
