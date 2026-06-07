@@ -118,7 +118,7 @@ function drawChart(data) {
   if (chart) chart.destroy();
 
   const labels = data.map(d => {
-    const t = new Date(d.created_at + 'Z');
+    const t = new Date(d.created_at);
     return t.toLocaleTimeString('zh', { hour: '2-digit', minute: '2-digit', month: 'numeric', day: 'numeric' });
   });
 
