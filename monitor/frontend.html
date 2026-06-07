@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VPS Monitor</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #c9d1d9; min-height: 100vh; }
+  .header { padding: 24px 32px 16px; display: flex; justify-content: space-between; align-items: baseline; }
+  .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+  .header .uptime { font-size: 13px; color: #8b949e; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 0 32px; }
+  .card { background: #161b22; border: 1px solid #21262d; border-radius: 10px; padding: 24px; text-align: center; }
+  .card .label { font-size: 12px; color: #8b949e; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 12px; }
+  .card .value { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; }
+  .card .sub { font-size: 13px; color: #8b949e; margin-top: 4px; }
+  .green  { color: #3fb950; }
+  .yellow { color: #d29922; }
+  .red    { color: #f85149; }
+  .blue   { color: #58a6ff; }
+  .chart-wrap { padding: 24px 32px; }
+  .chart-card { background: #161b22; border: 1px solid #21262d; border-radius: 10px; padding: 24px; }
+  .chart-card .title { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: #c9d1d9; }
+  .range-bar { display: flex; gap: 6px; margin-bottom: 16px; }
+  .range-bar button { background: #21262d; color: #8b949e; border: 1px solid #30363d; padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+  .range-bar button.active { background: #1f6feb; color: #fff; border-color: #1f6feb; }
+  canvas { width: 100% !important; max-height: 320px; }
+  .error { text-align: center; padding: 40px; color: #f85149; }
+  .footer { padding: 24px 32px; text-align: center; font-size: 12px; color: #484f58; }
+  @media (max-width: 800px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>🖥 VPS Monitor</h1>
+    <span class="uptime" id="uptime">-</span>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="label">CPU</div>
+      <div class="value" id="cpu">-</div>
+      <div class="sub">%</div>
+    </div>
+    <div class="card">
+      <div class="label">内存 %</div>
+      <div class="value" id="mem_pct">-</div>
+      <div class="sub">%</div>
+    </div>
+    <div class="card">
+      <div class="label">内存使用</div>
+      <div class="value" id="mem_mb">-</div>
+      <div class="sub" id="mem_sub">-</div>
+    </div>
+    <div class="card">
+      <div class="label">磁盘</div>
+      <div class="value" id="disk">-</div>
+      <div class="sub" id="disk_sub">-</div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-card">
+      <div class="title">资源趋势</div>
+      <div class="range-bar">
+        <button data-range="24h" class="active">24 小时</button>
+        <button data-range="7d">7 天</button>
+        <button data-range="30d">30 天</button>
+      </div>
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+  <div class="footer">每 60 秒采集一次 · 保留 90 天 · 独立于主平台</div>
+
+<script>
+function color(v, thresh) {
+  if (v < thresh) return 'green';
+  if (v < thresh * 1.5) return 'yellow';
+  return 'red';
+}
+
+function colorCPU(v) {
+  const el = document.getElementById('cpu');
+  if (v < 50) el.className = 'value green';
+  else if (v < 80) el.className = 'value yellow';
+  else el.className = 'value red';
+  el.textContent = v.toFixed(1);
+}
+
+function colorMem(v) {
+  const el = document.getElementById('mem_pct');
+  if (v < 60) el.className = 'value green';
+  else if (v < 85) el.className = 'value yellow';
+  else el.className = 'value red';
+  el.textContent = v.toFixed(1);
+}
+
+function colorDisk(v) {
+  const el = document.getElementById('disk');
+  if (v < 60) el.className = 'value green';
+  else if (v < 85) el.className = 'value yellow';
+  else el.className = 'value red';
+  el.textContent = v.toFixed(1);
+}
+
+function formatMB(mb) {
+  if (mb >= 1024) return (mb / 1024).toFixed(1) + ' GB';
+  return mb.toFixed(0) + ' MB';
+}
+
+let chart = null;
+
+function drawChart(data) {
+  const ctx = document.getElementById('chart');
+  if (!data || data.length === 0) return;
+  if (chart) chart.destroy();
+
+  const labels = data.map(d => {
+    const t = new Date(d.created_at + 'Z');
+    return t.toLocaleTimeString('zh', { hour: '2-digit', minute: '2-digit', month: 'numeric', day: 'numeric' });
+  });
+
+  const cpuData = data.map(d => d.cpu_percent);
+  const memData = data.map(d => d.mem_percent);
+  const diskData = data.map(d => d.disk_percent);
+
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'CPU %', data: cpuData, borderColor: '#f85149', backgroundColor: 'rgba(248,81,73,0.06)', fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5 },
+        { label: '内存 %', data: memData, borderColor: '#d29922', backgroundColor: 'rgba(210,153,34,0.06)', fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5 },
+        { label: '磁盘 %', data: diskData, borderColor: '#58a6ff', backgroundColor: 'rgba(88,166,255,0.06)', fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5 },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { labels: { color: '#8b949e', usePointStyle: true, pointStyleWidth: 8, padding: 20 } } },
+      scales: {
+        x: { ticks: { color: '#484f58', maxTicksLimit: 12, maxRotation: 0 } },
+        y: { min: 0, max: 100, ticks: { color: '#484f58', callback: v => v + '%' }, grid: { color: '#21262d' } },
+      },
+      interaction: { mode: 'index', intersect: false },
+    }
+  });
+}
+
+async function fetchCurrent() {
+  try {
+    const r = await fetch('/api/metrics/current');
+    const d = await r.json();
+    colorCPU(d.cpu_percent || 0);
+    colorMem(d.mem_percent || 0);
+    document.getElementById('mem_mb').textContent = formatMB(d.mem_used_mb || 0);
+    document.getElementById('mem_sub').textContent = '共 ' + formatMB(d.mem_total_mb || 0);
+    colorDisk(d.disk_percent || 0);
+    document.getElementById('disk_sub').textContent = (d.disk_used_gb || 0).toFixed(1) + ' GB / ' + (d.disk_total_gb || 0).toFixed(1) + ' GB';
+    document.getElementById('uptime').textContent = '运行 ' + (d.uptime_hours || 0).toFixed(0) + ' 小时';
+  } catch (e) {
+    document.querySelector('.header').innerHTML += '<span class="error">连接失败</span>';
+  }
+}
+
+async function fetchHistory(range) {
+  try {
+    const r = await fetch('/api/metrics/history?range=' + range);
+    const data = await r.json();
+    drawChart(data);
+  } catch {}
+}
+
+/* range buttons */
+document.querySelectorAll('.range-bar button').forEach(btn => {
+  btn.onclick = function() {
+    document.querySelectorAll('.range-bar button').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    fetchHistory(this.dataset.range);
+  };
+});
+
+/* init */
+fetchCurrent();
+fetchHistory('24h');
+setInterval(fetchCurrent, 30000);
+setInterval(() => {
+  const active = document.querySelector('.range-bar button.active');
+  if (active) fetchHistory(active.dataset.range);
+}, 60000);
+</script>
+</body>
+</html>
