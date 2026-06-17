@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"unicode/utf8"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -39,8 +40,8 @@ func (s *CommentService) List(ctx context.Context, imageID int64) ([]domain.Comm
 }
 
 func (s *CommentService) Create(ctx context.Context, imageID, userID int64, content string) (*domain.Comment, error) {
-	if len(content) == 0 || len(content) > 500 {
-		return nil, fmt.Errorf("comment must be 1-500 characters")
+	if runeCount := utf8.RuneCountInString(content); runeCount == 0 || runeCount > 1000 {
+		return nil, fmt.Errorf("评论内容 1-1000 字")
 	}
 	var c domain.Comment
 	err := s.db.QueryRow(ctx,

@@ -50,8 +50,9 @@ export function CommentsSection({ imageId, isAuthenticated }: Props) {
   const handleSubmit = () => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    if (trimmed.length > 500) {
-      message.error('最多 500 字');
+    const charCount = [...trimmed].length;
+    if (charCount > 1000) {
+      message.error('最多 1000 字');
       return;
     }
     createMutation.mutate(trimmed);
@@ -115,20 +116,24 @@ export function CommentsSection({ imageId, isAuthenticated }: Props) {
             <div className="cm-avatar cm-avatar-me">
               {(user?.username || '?')[0].toUpperCase()}
             </div>
-            <textarea
-              className="cm-textarea"
-              placeholder="写下你的评论..."
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              maxLength={500}
-              rows={2}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit();
-                }
-              }}
-            />
+            <div className="cm-input-col">
+              <textarea
+                className="cm-textarea"
+                placeholder="写下你的评论..."
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                rows={2}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit();
+                  }
+                }}
+              />
+              <span className={`cm-counter ${[...text].length > 1000 ? 'cm-counter-over' : ''}`}>
+                {[...text].length}/1000
+              </span>
+            </div>
             <button
               className="cm-submit"
               onClick={handleSubmit}
@@ -252,6 +257,23 @@ const commentsCSS = `
   display: flex;
   gap: 12px;
   align-items: flex-start;
+}
+.cm-input-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cm-counter {
+  font-size: 11px;
+  color: #b8b4ae;
+  text-align: right;
+  font-family: 'Noto Sans SC', sans-serif;
+  padding-right: 4px;
+}
+.cm-counter-over {
+  color: #c0392b;
+  font-weight: 600;
 }
 .cm-avatar-me {
   background: #c8a96e;
